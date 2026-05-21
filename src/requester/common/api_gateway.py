@@ -30,8 +30,18 @@ def verify_client_cert_san(event: dict[str, Any], expected_san: str) -> tuple[bo
     falls back to the subject Common Name. Returns ``(ok, reason)``.
     """
     request_context = event.get("requestContext") if isinstance(event, dict) else None
-    authentication = request_context.get("authentication") if isinstance(request_context, Mapping) else None
-    client_cert = authentication.get("clientCert") if isinstance(authentication, Mapping) else None
+    if not isinstance(request_context, Mapping):
+        return False, "no client certificate presented"
+    # HTTP API payload v2.0 exposes it at requestContext.authentication.clientCert;
+    # REST / payload v1.0 at requestContext.identity.clientCert. Check both.
+    client_cert: object = None
+    authentication = request_context.get("authentication")
+    if isinstance(authentication, Mapping):
+        client_cert = authentication.get("clientCert")
+    if not isinstance(client_cert, Mapping):
+        identity = request_context.get("identity")
+        if isinstance(identity, Mapping):
+            client_cert = identity.get("clientCert")
     if not isinstance(client_cert, Mapping):
         return False, "no client certificate presented"
 

@@ -64,3 +64,11 @@ def test_mtls_subjectdn_fallback_when_no_pem():
     event = {"requestContext": {"authentication": {"clientCert": {"subjectDN": f"CN={EXPECTED},O=Slack"}}}}
     ok, _ = verify_client_cert_san(event, EXPECTED)
     assert ok is True
+
+
+def test_mtls_accepts_v1_identity_client_cert_path():
+    # REST / payload v1.0 places the client cert at requestContext.identity.clientCert.
+    pem = _make_cert_pem(common_name="not-the-name", san_dns=[EXPECTED])
+    event = {"requestContext": {"identity": {"clientCert": {"clientCertPem": pem}}}}
+    ok, _ = verify_client_cert_san(event, EXPECTED)
+    assert ok is True

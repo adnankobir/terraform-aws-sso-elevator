@@ -31,7 +31,20 @@ def lambda_handler(event: str, context: object) -> object:  # noqa: ANN001
         if not ok:
             import config as _config
 
-            _config.get_logger("main").warning("Rejecting request: mTLS client certificate check failed", extra={"reason": reason})
+            _rc = event.get("requestContext", {}) if isinstance(event, dict) else {}
+            _auth = _rc.get("authentication") if isinstance(_rc, dict) else None
+            _ident = _rc.get("identity") if isinstance(_rc, dict) else None
+            _config.get_logger("main").warning(
+                "Rejecting request: mTLS client certificate check failed",
+                extra={
+                    "reason": reason,
+                    # structure-only diagnostics (no sensitive values) to locate the client cert in the event
+                    "event_keys": sorted(event.keys()) if isinstance(event, dict) else None,
+                    "request_context_keys": sorted(_rc.keys()) if isinstance(_rc, dict) else None,
+                    "authentication_keys": sorted(_auth.keys()) if isinstance(_auth, dict) else None,
+                    "identity_keys": sorted(_ident.keys()) if isinstance(_ident, dict) else None,
+                },
+            )
             return {"statusCode": 403, "headers": {"Content-Type": "text/plain"}, "body": "Forbidden"}
 
     if ctx.cfg.chat_platform == "teams":
