@@ -251,7 +251,10 @@ module "http_api" {
   create_domain_name          = var.api_gateway_custom_domain_name != "" ? true : false
   domain_name                 = var.api_gateway_custom_domain_name != "" ? var.api_gateway_custom_domain_name : null
   domain_name_certificate_arn = var.api_gateway_custom_domain_name != "" ? var.api_gateway_domain_certificate_arn : null
-  create_domain_records       = false
+  # Use the certificate we pass in; do not let the module mint its own (its internal ACM cert
+  # is gated on create_domain_records, which we disable, so it would be empty → invalid cert).
+  create_certificate    = false
+  create_domain_records = false
   mutual_tls_authentication = var.api_gateway_mutual_tls_truststore_uri != "" ? {
     truststore_uri     = var.api_gateway_mutual_tls_truststore_uri
     truststore_version = var.api_gateway_mutual_tls_truststore_version
