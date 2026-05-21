@@ -8,6 +8,16 @@ output "requester_api_endpoint_url" {
   value       = var.create_api_gateway ? local.full_api_url : null
 }
 
+output "api_gateway_domain_name_target" {
+  description = "Target domain name of the API Gateway custom domain (for a Route53 alias record). Null when no custom domain is configured."
+  value       = var.create_api_gateway && var.api_gateway_custom_domain_name != "" ? module.http_api[0].domain_name_target_domain_name : null
+}
+
+output "api_gateway_domain_name_hosted_zone_id" {
+  description = "Hosted zone ID of the API Gateway custom domain (for a Route53 alias record). Null when no custom domain is configured."
+  value       = var.create_api_gateway && var.api_gateway_custom_domain_name != "" ? module.http_api[0].domain_name_hosted_zone_id : null
+}
+
 output "config_s3_bucket_name" {
   description = "The name of the S3 bucket for storing configuration and cache data."
   value       = module.config_bucket.s3_bucket_id
