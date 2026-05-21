@@ -4,8 +4,10 @@ output "sso_elevator_bucket_id" {
 }
 
 output "requester_api_endpoint_url" {
-  description = "The full URL to invoke the API. For Slack, set it as the Request URL in the app manifest. For Teams / Bot Framework, set it as the bot messaging endpoint where applicable."
-  value       = var.create_api_gateway ? local.full_api_url : null
+  description = "The full URL to invoke the API. For Slack, set it as the Request URL in the app manifest. For Teams / Bot Framework, set it as the bot messaging endpoint where applicable. When a custom domain is configured, this is the custom-domain URL (the default execute-api endpoint is disabled)."
+  value = !var.create_api_gateway ? null : (
+    var.api_gateway_custom_domain_name != "" ? "https://${var.api_gateway_custom_domain_name}${local.api_resource_path}" : local.full_api_url
+  )
 }
 
 output "api_gateway_domain_name_target" {
